@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Semantic-Aware Blockchain Metaverse"
+authors:
+  - family-names: Wang
+    given-names: Ning
+  - family-names: Lorenzo
+    given-names: Beatriz
+license: MIT
+preferred-citation:
+  type: conference-paper
+  title: "Semantic-Aware Blockchain Architecture Design for Edge-enabled Metaverse"
+  authors:
+    - family-names: Wang
+      given-names: Ning
+    - family-names: Lorenzo
+      given-names: Beatriz
+  year: 2023
+  publisher:
+    name: IEEE

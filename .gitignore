@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Legacy simulation results (superseded by the per-seed CSVs used in the paper)
+test_values/**/old/
+test_values/no_UAV_optimize/rho/100/
