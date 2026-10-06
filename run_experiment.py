@@ -48,28 +48,28 @@ def Initialization(seed_number, sweep, uav_opt, values, out_dir):
     num_servers = 20
     map_size = 200
 
-    # Generate tasks with different semantics
+    # Generate tasks with different semantics (type = 1..4)
     data = tg.Taskgenerate()
-    type_task = data.generate_type(k, num_task)
-    p = data.generate_price(20, k, type_task)
-    D = data.generate_datasize(20, 30, num_task)
-    req_T = data.generate_requirement_T(type_task)
-    req_R = data.generate_requirement_R(type_task)
-    l = data.generate_location(0, map_size, num_task)
-    B = data.generate_bandwidth(type_task)
-    sample_rate = data.generate_sample_rate(10, k, type_task)
+    type_task = data.generate_type(k, num_task)  # equal number of tasks per type
+    p = data.generate_price(20, k, type_task)  # unit price 20/4 * type = 5, 10, 15, 20
+    D = data.generate_datasize(20, 30, num_task)  # data size, uniform integer in [20, 30] Mbit
+    req_T = data.generate_requirement_T(type_task)  # delay requirement 40, 10, 60, 15 per type
+    req_R = data.generate_requirement_R(type_task)  # throughput requirement 1, 5, 10, 20 Mbit/s per type
+    l = data.generate_location(0, map_size, num_task)  # user locations on the map
+    B = data.generate_bandwidth(type_task)  # bandwidth 5, 25, 50, 100 MHz per type
+    sample_rate = data.generate_sample_rate(10, k, type_task)  # 10/5 * type = 2, 4, 6, 8 (stored, not used)
     task = data.generate_task(type_task, req_T, req_R, p, D, l, B, sample_rate, num_task)
 
-    # Generate UAV servers with different computing abilities
+    # Generate UAV servers with different computing abilities (type = 1..4)
     se = sg.Servergenerate()
-    type_server = se.generate_type(k, num_servers)
-    computing_res = se.generate_computing_resource(160, type_server)
-    CPU_parameter = se.generate_CPU_parameter(0.01, type_server)
-    sample_rate = se.generate_sample_rate(10, k, type_server)
-    CPU_frequency = se.generate_CPU_frequency(20, k, type_server)
-    server_location = se.generate_location(0, map_size, num_servers)
-    ptr = se.generate_random_ptr(30, 50, num_servers)
-    pcol = se.generate_random_pcol(5, 10, num_servers)
+    type_server = se.generate_type(k, num_servers)  # equal number of servers per type
+    computing_res = se.generate_computing_resource(160, type_server)  # 160 - 20 * type = 140, 120, 100, 80
+    CPU_parameter = se.generate_CPU_parameter(0.01, type_server)  # alpha_k = 0.01 * type = 0.01 ... 0.04
+    sample_rate = se.generate_sample_rate(10, k, type_server)  # theta_k = 10/5 * type = 2, 4, 6, 8 cycles per unit data
+    CPU_frequency = se.generate_CPU_frequency(20, k, type_server)  # f_k = 20/5 * type = 4, 8, 12, 16
+    server_location = se.generate_location(0, map_size, num_servers)  # initial UAV locations
+    ptr = se.generate_random_ptr(30, 50, num_servers)  # A2A transmission / result-return power, uniform in [30, 50]
+    pcol = se.generate_random_pcol(5, 10, num_servers)  # data-collection power, uniform in [5, 10]
 
     server = se.generate_server(type_server, computing_res, CPU_parameter, sample_rate, CPU_frequency, server_location,
                                 ptr,
@@ -115,22 +115,22 @@ def Initialization(seed_number, sweep, uav_opt, values, out_dir):
 def run_allocation(rho, nu, sweep, uav_opt, out_dir, server, A2A_transmit_rate, new_task, new_group, num_task,
                    num_servers, seed_number):
     # Start training
-    EPSILON = 0.9  # greedy
-    GAMMA = 0.9  # discount
-    ALPHA = 0.5  # learning rate
-    max_iteration = 500  # iterations 500
-    lamda = 0.1
-    deata = 0.3
-    omiga = 0.6
-    account = 1
-    price = 5
-    resource = 160_140_120_100
+    # The original scripts passed (EPSILON=0.9, ALPHA=0.5, GAMMA=0.9) positionally into Task_allocation's
+    # (ALPHA, GAMMA, EPSILON) slots, so the values that produced the results in test_values/ are the ones below.
+    # (The ALPHA/GAMMA columns of the CSVs in test_values/ still carry the old labels 0.5/0.9.)
+    ALPHA = 0.9  # learning rate
+    GAMMA = 0.5  # discount
+    EPSILON = 0.9  # probability of taking the greedy (max-Q) action; explores with probability 1 - EPSILON
+    max_iteration = 500  # Q-learning episodes
+    lamda = 0.1  # intermediary (forwarding) fee ratio
+    deata = 0.3  # max share of a server's computing resource for mismatched-type tasks (delta)
+    omiga = 0.6  # passed to Task_allocation but not used; the PSO objective weights A2A and A2G equally (1/2, 1/2)
+    account = 1  # weight of the source server's forwarding reward in the Q update
+    price = 5  # recorded label only; task prices are 5 * type, i.e. 5, 10, 15, 20
+    resource = 160_140_120_100  # recorded label only; server computing resources are 160 - 20 * type, i.e. 140, 120, 100, 80
 
-    # NOTE: Task_allocation's signature is (..., ALPHA, GAMMA, EPSILON, ...). The arguments are passed here as
-    # (EPSILON, ALPHA, GAMMA), exactly as in the code that produced the results in test_values/, so the
-    # effective values inside Task_allocation are ALPHA=0.9, GAMMA=0.5, EPSILON=0.9.
-    ql = ta.Task_allocation(server, A2A_transmit_rate, new_task, new_group, num_task, num_servers, EPSILON, ALPHA,
-                            GAMMA,
+    ql = ta.Task_allocation(server, A2A_transmit_rate, new_task, new_group, num_task, num_servers, ALPHA, GAMMA,
+                            EPSILON,
                             max_iteration, lamda, rho, nu, deata, omiga, account)
 
     # Greedy select

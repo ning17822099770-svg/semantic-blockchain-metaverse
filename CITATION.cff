@@ -7,6 +7,7 @@ authors:
   - family-names: Lorenzo
     given-names: Beatriz
 license: MIT
+repository-code: "https://github.com/ning17822099770-svg/semantic-blockchain-metaverse"
 preferred-citation:
   type: conference-paper
   title: "Semantic-Aware Blockchain Architecture Design for Edge-enabled Metaverse"
@@ -15,6 +16,18 @@ preferred-citation:
       given-names: Ning
     - family-names: Lorenzo
       given-names: Beatriz
+  collection-title: "2023 IEEE 14th Annual Ubiquitous Computing, Electronics & Mobile Communication Conference (UEMCON)"
+  conference:
+    name: "IEEE UEMCON 2023"
+    city: "New York"
+    region: "NY"
+    country: US
+    date-start: 2023-10-12
+    date-end: 2023-10-14
+  start: 647
+  end: 654
   year: 2023
   publisher:
     name: IEEE
+  doi: "10.1109/UEMCON59035.2023.10316024"
+  url: "https://ieeexplore.ieee.org/abstract/document/10316024"
